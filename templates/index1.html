@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNG Compressor - Choose Your Best Result</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            font-size: 1em;
+            color: #666;
+        }
+        
+        .file-size-info {
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #999;
+        }
+        
+        .compress-btn {
+            padding: 15px 50px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        
+        .compress-btn:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+        }
+        
+        .compress-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            margin: 30px 0;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            display: none;
+            padding: 40px;
+        }
+        
+        .results.active {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin: 30px 0 20px;
+            text-align: center;
+        }
+        
+        .info-banner {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .info-banner h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .original-preview {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .original-preview h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .original-preview img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .original-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .original-stat {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .original-stat h4 {
+            font-size: 0.85em;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .original-stat .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .strategies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .strategy-card {
+            background: #fff;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .strategy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .strategy-card.selected {
+            border-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+        }
+        
+        .strategy-card.recommended {
+            border-color: #667eea;
+        }
+        
+        .strategy-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .strategy-card.selected .strategy-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .strategy-card.recommended .strategy-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .recommended-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ffc107;
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .selected-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            color: #28a745;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .strategy-header h3 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .strategy-header p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .strategy-image {
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+        }
+        
+        .strategy-image img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .strategy-stats {
+            padding: 20px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .stat-value.good {
+            color: #28a745;
+        }
+        
+        .stat-value.excellent {
+            color: #007bff;
+        }
+        
+        .quality-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        
+        .quality-excellent {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .quality-good {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .quality-fair {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .select-btn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .select-btn:hover {
+            background: #5568d3;
+        }
+        
+        .strategy-card.selected .select-btn {
+            background: #28a745;
+        }
+        
+        .strategy-card.selected .select-btn:hover {
+            background: #218838;
+        }
+        
+        .download-section {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .download-section.hidden {
+            display: none;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(40, 167, 69, 0.4);
+        }
+        
+        .comparison-table {
+            width: 100%;
+            margin: 30px 0;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .comparison-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .comparison-table tr:hover {
+            background: #e7f3ff;
+        }
+        
+        .error {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .error.active {
+            display: block;
+        }
+        
+        .histogram-section {
+            margin: 40px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .histogram-section h3 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .histograms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .histogram-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .histogram-box h4 {
+            margin-bottom: 10px;
+            color: #666;
+        }
+        
+        .histogram-box img {
+            width: 100%;
+            border-radius: 5px;
+        }
+        
+        @media (max-width: 1200px) {
+            .strategies-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .original-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .histograms-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ PNG Compressor</h1>
+            <p>Compare All Strategies & Choose Your Best Result - Up to 50MB</p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="imageInput" accept=".png,.jpg,.jpeg">
+                <label for="imageInput" class="file-input-label">
+                    📁 Choose Image (PNG/JPEG, up to 50MB)
+                </label>
+            </div>
+            <div class="file-name" id="fileName"></div>
+            <div class="file-size-info" id="fileSizeInfo"></div>
+            <br>
+            <button class="compress-btn" id="compressBtn" disabled>Compress with All Strategies</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Compressing image using 3 different strategies...</p>
+                <p style="font-size: 0.9em; color: #666;">This may take 20-60 seconds for large files</p>
+            </div>
+            
+            <div class="error" id="error"></div>
+        </div>
+        
+        <div class="results" id="results">
+            <h2 class="section-title">Your Original Image</h2>
+            
+            <div class="original-preview">
+                <img id="originalImage" alt="Original">
+                <div class="original-stats" id="originalStats"></div>
+            </div>
+            
+            <div class="info-banner">
+                <h3>📊 Compare All 3 Compression Strategies</h3>
+                <p>Each strategy uses different techniques. Compare the results below and select your preferred version. The recommended strategy (⭐) offers the best balance of size reduction and quality, but you can choose any option that fits your needs.</p>
+            </div>
+            
+            <h2 class="section-title">Choose Your Compression Strategy</h2>
+            
+            <div class="strategies-grid" id="strategiesGrid"></div>
+            
+            <div class="download-section hidden" id="downloadSection">
+                <h3 style="margin-bottom: 20px; color: #333;">✅ Selection Confirmed!</h3>
+                <p style="margin-bottom: 20px; color: #666;">Click below to download your compressed image</p>
+                <a href="#" class="download-btn" id="downloadBtn">⬇️ Download Compressed Image</a>
+            </div>
+            
+            <h2 class="section-title">Detailed Comparison Table</h2>
+            
+            <table class="comparison-table" id="comparisonTable">
+                <thead>
+                    <tr>
+                        <th>Strategy</th>
+                        <th>Original Size</th>
+                        <th>Compressed Size</th>
+                        <th>Saved</th>
+                        <th>Compression %</th>
+                        <th>SSIM Quality</th>
+                        <th>PSNR (dB)</th>
+                        <th>Processing Time</th>
+                    </tr>
+                </thead>
+                <tbody id="comparisonBody"></tbody>
+            </table>
+            
+            <div class="histogram-section">
+                <h3>Color Distribution Analysis</h3>
+                <div class="histograms-grid" id="histogramsGrid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const fileName = document.getElementById('fileName');
+        const fileSizeInfo = document.getElementById('fileSizeInfo');
+        const compressBtn = document.getElementById('compressBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorDiv = document.getElementById('error');
+        const downloadSection = document.getElementById('downloadSection');
+        
+        const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+        
+        let compressionData = null;
+        let selectedStrategy = null;
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+        
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileName.textContent = `Selected: ${file.name}`;
+                fileSizeInfo.textContent = `Size: ${formatBytes(file.size)}`;
+                
+                if (file.size > MAX_FILE_SIZE) {
+                    errorDiv.textContent = `File size (${formatBytes(file.size)}) exceeds maximum limit of 50MB`;
+                    errorDiv.classList.add('active');
+                    compressBtn.disabled = true;
+                    fileSizeInfo.style.color = 'red';
+                } else {
+                    errorDiv.classList.remove('active');
+                    compressBtn.disabled = false;
+                    fileSizeInfo.style.color = file.size > 10 * 1024 * 1024 ? '#ff9800' : '#28a745';
+                }
+            }
+        });
+        
+        compressBtn.addEventListener('click', async function() {
+            const file = imageInput.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            loading.classList.add('active');
+            results.classList.remove('active');
+            errorDiv.classList.remove('active');
+            compressBtn.disabled = true;
+            
+            try {
+                // Use relative URL for reverse proxy compatibility
+                const response = await fetch('./compress', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                compressionData = data;
+                displayResults(data);
+                
+            } catch (error) {
+                errorDiv.textContent = `Error: ${error.message}`;
+                errorDiv.classList.add('active');
+            } finally {
+                loading.classList.remove('active');
+                compressBtn.disabled = false;
+            }
+        });
+        
+        function getQualityClass(ssim) {
+            if (ssim >= 0.98) return 'quality-excellent';
+            if (ssim >= 0.95) return 'quality-good';
+            return 'quality-fair';
+        }
+        
+        function getQualityText(ssim) {
+            if (ssim >= 0.98) return 'Excellent';
+            if (ssim >= 0.95) return 'Very Good';
+            if (ssim >= 0.90) return 'Good';
+            return 'Fair';
+        }
+        
+        function selectStrategy(strategyIndex, strategyName) {
+            selectedStrategy = strategyIndex;
+            
+            // Update UI
+            document.querySelectorAll('.strategy-card').forEach((card, index) => {
+                if (index === strategyIndex) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+            
+            // Show download section
+            downloadSection.classList.remove('hidden');
+            
+            // Update download link with relative URL
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.href = `./download?strategy=${strategyIndex}`;
+            
+            // Scroll to download button
+            downloadSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function displayResults(data) {
+            const analysis = data.analysis;
+            const strategies = data.all_strategies;
+            
+            // Display original image
+            document.getElementById('originalImage').src = 'data:image/png;base64,' + data.images.original;
+            
+            // Display original stats
+            const originalStats = document.getElementById('originalStats');
+            originalStats.innerHTML = `
+                <div class="original-stat">
+                    <h4>File Size</h4>
+                    <div class="value">${formatBytes(analysis.original_size)}</div>
+                </div>
+                <div class="original-stat">
+                    <h4>Dimensions</h4>
+                    <div class="value">${analysis.dimensions}</div>
+                </div>
+                <div class="original-stat">
+                    <h4>Content Type</h4>
+                    <div class="value">${analysis.content_type.toUpperCase()}</div>
+                </div>
+                <div class="original-stat">
+                    <h4>Processing Time</h4>
+                    <div class="value">${data.processing_time}s</div>
+                </div>
+            `;
+            
+            // Create strategy cards
+            const strategiesGrid = document.getElementById('strategiesGrid');
+            strategiesGrid.innerHTML = strategies.map((strategy, index) => {
+                const ssimValue = parseFloat(strategy.ssim);
+                const qualityClass = getQualityClass(ssimValue);
+                const qualityText = getQualityText(ssimValue);
+                const isRecommended = strategy.is_best;
+                
+                return `
+                    <div class="strategy-card ${isRecommended ? 'recommended' : ''}" id="strategy-${index}">
+                        <div class="strategy-header">
+                            ${isRecommended ? '<span class="recommended-badge">⭐ RECOMMENDED</span>' : ''}
+                            <h3>${strategy.name}</h3>
+                            <p>Strategy ${index + 1}</p>
+                        </div>
+                        <div class="strategy-image">
+                            <img src="data:image/png;base64,${data.images['strategy_' + index]}" alt="${strategy.name}">
+                        </div>
+                        <div class="strategy-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Compressed Size</span>
+                                <span class="stat-value good">${formatBytes(strategy.size)}</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Size Reduction</span>
+                                <span class="stat-value excellent">${formatBytes(analysis.original_size - strategy.size)} (${strategy.compression_ratio}%)</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Image Quality (SSIM)</span>
+                                <span class="stat-value">${strategy.ssim} <span class="quality-badge ${qualityClass}">${qualityText}</span></span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">PSNR</span>
+                                <span class="stat-value">${strategy.psnr} dB</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Processing Time</span>
+                                <span class="stat-value">${strategy.processing_time}s</span>
+                            </div>
+                        </div>
+                        <button class="select-btn" onclick="selectStrategy(${index}, '${strategy.name}')">
+                            Select This Strategy
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            
+            // Create comparison table
+            const comparisonBody = document.getElementById('comparisonBody');
+            comparisonBody.innerHTML = strategies.map((strategy, index) => `
+                <tr>
+                    <td><strong>${strategy.name}</strong> ${strategy.is_best ? '<span style="color: #667eea;">⭐</span>' : ''}</td>
+                    <td>${formatBytes(analysis.original_size)}</td>
+                    <td>${formatBytes(strategy.size)}</td>
+                    <td style="color: #28a745;">${formatBytes(analysis.original_size - strategy.size)}</td>
+                    <td><strong>${strategy.compression_ratio}%</strong></td>
+                    <td>${strategy.ssim}</td>
+                    <td>${strategy.psnr} dB</td>
+                    <td>${strategy.processing_time}s</td>
+                </tr>
+            `).join('');
+            
+            // Create histograms
+            const histogramsGrid = document.getElementById('histogramsGrid');
+            histogramsGrid.innerHTML = `
+                <div class="histogram-box">
+                    <h4>Original Image</h4>
+                    <img src="data:image/png;base64,${data.histograms.original}" alt="Original Histogram">
+                </div>
+                ${strategies.map((strategy, index) => `
+                    <div class="histogram-box">
+                        <h4>${strategy.name}</h4>
+                        <img src="data:image/png;base64,${data.histograms['strategy_' + index]}" alt="${strategy.name} Histogram">
+                    </div>
+                `).join('')}
+            `;
+            
+            results.classList.add('active');
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
